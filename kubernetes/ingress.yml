@@ -1,0 +1,25 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress
+  namespace: prod
+spec:
+  # tls:
+  # - hosts:
+  #   - api.descartae.com
+  #   - webportal.descartae.com
+  rules:
+  - host: webportal.descartae.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: client-ingress
+          servicePort: 80
+  - host: api.descartae.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: server-ingress
+          servicePort: 80

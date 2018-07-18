@@ -1,0 +1,61 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: server
+  namespace: prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: server
+  minReadySeconds: 40
+  template:
+    metadata:
+      namespace: prod
+      labels:
+        app: server
+        system: node
+    spec:
+      containers:
+      - name: server
+        image: descartae/webportal-server:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3901
+        env:
+        - name: SERVER_PORT
+          value: "3901"
+        - name: SIGNUP
+          value: "true"
+        - name: SIGNUP_ROLE
+          value: MAINTAINER
+        - name: MONGODB_URL
+          value: mongodb://mongo:27017/webportal
+        - name: JWT_SECRET
+          valueFrom:
+            configMapKeyRef:
+              name: config
+              key: jwt_secret
+        - name: MAPS_API_KEY
+          valueFrom:
+            configMapKeyRef:
+              name: config
+              key: maps_api_key
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: server-ingress
+  namespace: prod
+  labels:
+    app: server
+    system: node
+spec:
+  type: NodePort
+  ports:
+  - name: server
+    port: 80
+    protocol: TCP
+    targetPort: 3901
+  selector:
+    app: server

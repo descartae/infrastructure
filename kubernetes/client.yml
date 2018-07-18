@@ -1,0 +1,54 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: client
+  namespace: prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: client
+  minReadySeconds: 50
+  template:
+    metadata:
+      namespace: prod
+      labels:
+        app: client
+        system: node
+    spec:
+      containers:
+      - name: client
+        image: descartae/webportal-client:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3900
+        env:
+        - name: PORT
+          value: "3900"
+        - name: REACT_APP_SERVER_URL
+          value: https://api.descartae.com/graphql
+        - name: REACT_APP_SIGNUP
+          value: "true"
+        - name: REACT_APP_MAPS_API_KEY
+          valueFrom:
+            configMapKeyRef:
+              name: config
+              key: maps_api_key
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: client-ingress
+  namespace: prod
+  labels:
+    app: client
+    system: node
+spec:
+  type: NodePort
+  ports:
+  - name: client
+    port: 80
+    protocol: TCP
+    targetPort: 3900
+  selector:
+    app: client
